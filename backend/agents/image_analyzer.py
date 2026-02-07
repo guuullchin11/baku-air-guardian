@@ -16,7 +16,7 @@ class ImageAnalyzer:
         genai.configure(api_key=api_key)
         
         # Gemini 1.5 Flash vision dəstəkləyir
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.model = genai.GenerativeModel('gemini-pro-vision')
 
     def analyze_sky_image(self, image_path):
         try:
