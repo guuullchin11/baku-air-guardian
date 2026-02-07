@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+// --- ƏLAVƏ EDİLDİ ---
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 function PhotoUpload({ language = 'az' }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -66,8 +69,9 @@ function PhotoUpload({ language = 'az' }) {
     formData.append('image', selectedFile);
 
     try {
+      // --- DƏYİŞDİRİLDİ ---
       const response = await axios.post(
-        'http://localhost:5000/api/analyze-image',
+        `${API_URL}/api/analyze-image`,
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );

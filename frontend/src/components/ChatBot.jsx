@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+// --- ƏLAVƏ EDİLDİ ---
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 function ChatBot({ language = 'az' }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -52,7 +55,8 @@ function ChatBot({ language = 'az' }) {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/chat', {
+      // --- DƏYİŞDİRİLDİ ---
+      const response = await axios.post(`${API_URL}/api/chat`, {
         message: input,
         profile: userProfile.condition || userProfile.location ? userProfile : null
       });
@@ -74,7 +78,8 @@ function ChatBot({ language = 'az' }) {
 
   const resetChat = async () => {
     try {
-      await axios.post('http://localhost:5000/api/chat/reset');
+      // --- DƏYİŞDİRİLDİ ---
+      await axios.post(`${API_URL}/api/chat/reset`);
       setMessages([]);
     } catch (err) {
       console.error(err);

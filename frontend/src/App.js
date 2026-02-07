@@ -9,6 +9,9 @@ import axios from 'axios';
 import AQIAlerts from './components/AQIAlerts';
 import VoiceAlerts from './components/VoiceAlerts';
 
+// --- ƏLAVƏ EDİLDİ ---
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 function App() {
   const [aqiData, setAqiData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -44,7 +47,8 @@ function App() {
     const fetchAQI = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/aqi');
+        // --- DƏYİŞDİRİLDİ ---
+        const response = await axios.get(`${API_URL}/api/aqi`);
         setAqiData(response.data);
         setLoading(false);
       } catch (err) {
@@ -99,7 +103,7 @@ function App() {
   if (error) return (
     <div style={{padding: '20px', textAlign: 'center', color: 'red'}}>
       <h2>{error}</h2>
-      <p>Flask server işə salınıbmı yoxla: http://localhost:5000/api/health</p>
+      <p>Backend server işə salınıbmı yoxla: {API_URL}/api/health</p>
     </div>
   );
 
@@ -142,7 +146,7 @@ function App() {
         {t.subtitle}
       </p>
       
-      {/* Foto Upload - YALNIZ BİR DƏFƏ */}
+      {/* Foto Upload */}
       <div className="feature-card fade-in">
         <div className="section-header">
           <span className="section-icon">📸</span>
@@ -158,7 +162,7 @@ function App() {
         <PhotoUpload language={language} />
       </div>
 
-      {/* AI Chat - YALNIZ BİR DƏFƏ */}
+      {/* AI Chat */}
       <div className="feature-card fade-in-delay-1">
         <div className="section-header">
           <span className="section-icon">💬</span>
@@ -174,7 +178,7 @@ function App() {
         <ChatBot language={language} />
       </div>
 
-      {/* Xəritə - YALNIZ BİR DƏFƏ */}
+      {/* Xəritə */}
       <div className="feature-card fade-in-delay-2">
         <div className="section-header">
           <span className="section-icon">🗺️</span>
@@ -190,7 +194,7 @@ function App() {
         <InteractiveMap aqiData={aqiData} language={language} />
       </div>
 
-      {/* Chart - YALNIZ BİR DƏFƏ */}
+      {/* Chart */}
       <div className="feature-card fade-in-delay-3">
         <div className="section-header">
           <span className="section-icon">📈</span>
@@ -206,14 +210,15 @@ function App() {
         <AQIForecast language={language} />
       </div>
 
-      {/* AQI Alerts - YENİ */}
-<div className="feature-card" style={{ marginBottom: '50px' }}>
-  <AQIAlerts aqiData={aqiData} language={language} />
-</div>
-{/* Voice Alerts - YENİ */}
-<div className="feature-card" style={{ marginBottom: '50px' }}>
-  <VoiceAlerts aqiData={aqiData} language={language} />
-</div>
+      {/* AQI Alerts */}
+      <div className="feature-card" style={{ marginBottom: '50px' }}>
+        <AQIAlerts aqiData={aqiData} language={language} />
+      </div>
+
+      {/* Voice Alerts */}
+      <div className="feature-card" style={{ marginBottom: '50px' }}>
+        <VoiceAlerts aqiData={aqiData} language={language} />
+      </div>
       
       {/* Şəhərlərə görə AQI kartları */}
       {Object.entries(groupedData).map(([city, locations]) => (
