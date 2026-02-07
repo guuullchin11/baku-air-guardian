@@ -1,4 +1,4 @@
-﻿from flask import Flask, jsonify, request
+﻿from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
 import sys
@@ -6,7 +6,6 @@ from agents.health_advisor import HealthAdvisor
 from werkzeug.utils import secure_filename
 
 # Layihənin kök qovluğunu (backend) tap və sys.path-ə əlavə et
-# Bu sətir agents qovluğunu tapa bilməsi üçün lazımdır
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
@@ -57,6 +56,91 @@ def allowed_file(filename):
     """Yalnız icazə verilən fayl tiplərini yoxlayır"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# ===========================================
+# ✅ 1. ROOT ENDPOINT - BU ÇOX VACİB!
+# ===========================================
+@app.route('/')
+def home():
+    """Ana səhifə"""
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Baku Air Guardian API</title>
+        <meta charset="utf-8">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 40px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 15px;
+                backdrop-filter: blur(10px);
+            }
+            h1 {
+                color: #fff;
+                text-align: center;
+            }
+            .endpoint {
+                background: rgba(255, 255, 255, 0.2);
+                padding: 15px;
+                margin: 10px 0;
+                border-radius: 10px;
+            }
+            code {
+                background: rgba(0, 0, 0, 0.3);
+                padding: 2px 5px;
+                border-radius: 4px;
+            }
+            a {
+                color: #4fc3f7;
+                text-decoration: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚀 Baku Air Guardian API</h1>
+            <p>Backend server işləyir! Aşağıdakı endpointlərdən istifadə edə bilərsiniz:</p>
+            
+            <div class="endpoint">
+                <h3>📊 AQI Endpointləri</h3>
+                <p><code>GET /api/health</code> - Server status</p>
+                <p><code>GET /api/aqi</code> - Bütün rayonların AQI məlumatı</p>
+                <p><code>GET /api/aqi/{rayon_adı}</code> - Xüsusi rayonun AQI məlumatı</p>
+            </div>
+            
+            <div class="endpoint">
+                <h3>🤖 AI Chat Endpointləri</h3>
+                <p><code>POST /api/chat</code> - AI ilə söhbət</p>
+                <p><code>POST /api/chat/reset</code> - Söhbəti sıfırla</p>
+                <p><code>POST /api/analyze-image</code> - Şəkil analizi</p>
+            </div>
+            
+            <div class="endpoint">
+                <h3>🔗 Frontend Linkləri</h3>
+                <p><a href="https://baku-air-guardian.vercel.app" target="_blank">Frontend Səhifəsi</a></p>
+                <p><a href="https://github.com/guullchinin1/baku-air-guardian" target="_blank">GitHub Repo</a></p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <p>🚨 Hackathon proyekti - © 2024 Baku Air Guardian</p>
+                <p>🔥 Developed with AI Assistance</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+
+# ===========================================
+# 2. API ENDPOINTS
+# ===========================================
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'OK', 'message': 'Backend işləyir!'})
@@ -121,10 +205,9 @@ def analyze_image():
         except Exception:
             pass
 
-# ======================================================
-# ✅ YENİ CHAT ENDPOINT-LƏRİ (SONA ƏLAVƏ EDİLDİ)
-# ======================================================
-
+# ===========================================
+# 3. CHAT ENDPOINTS
+# ===========================================
 @app.route('/api/chat', methods=['POST'])
 def chat():
     '''AI ile sohbet'''
@@ -147,5 +230,23 @@ def reset_chat():
     advisor.reset_conversation()
     return jsonify({'status': 'ok', 'message': 'Sohbet silinib'})
 
+# ===========================================
+# 4. STATIC FAYLLAR (ƏGƏR FRONTEND VARSA)
+# ===========================================
+@app.route('/test')
+def test_page():
+    """Test səhifəsi"""
+    return '''
+    <h1>Test Page</h1>
+    <p>Backend işləyir!</p>
+    <p><a href="/api/health">Health Check</a></p>
+    <p><a href="/api/aqi">AQI Data</a></p>
+    '''
+
+# ===========================================
+# RUN SERVER
+# ===========================================
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Render.com üçün portu environment dəyişənindən al
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
