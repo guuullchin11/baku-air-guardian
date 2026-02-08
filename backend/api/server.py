@@ -6,6 +6,10 @@ from werkzeug.utils import secure_filename
 from agents.health_advisor import HealthAdvisor
 from agents.image_analyzer import ImageAnalyzer
 from agents.data_collector import DataCollector
+from agents.health_advisor import HealthAdvisor # Fayl yoluna uyğun import
+
+# Obyekti yarat
+health_advisor = HealthAdvisor()
 
 # Layihənin kök qovluğunu (backend) tap və sys.path-ə əlavə et
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
