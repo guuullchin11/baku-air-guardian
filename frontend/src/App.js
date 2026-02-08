@@ -147,21 +147,8 @@ function App() {
         {t.subtitle}
       </p>
       
-      {/* Foto Upload */}
-      <div className="feature-card fade-in">
-        <div className="section-header">
-          <span className="section-icon">📸</span>
-          <div>
-            <div className="section-title">
-              {language === 'az' ? 'Göy Üzü Foto Analizi' : 'Sky Photo Analysis'}
-            </div>
-            <div className="section-subtitle">
-              Gemini Vision
-            </div>
-          </div>
-        </div>
-        <PhotoUpload language={language} />
-      </div>
+    
+       
 
       {/* AI Chat */}
       <div className="feature-card fade-in-delay-1">
