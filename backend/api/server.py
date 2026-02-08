@@ -2,17 +2,15 @@
 from flask_cors import CORS
 import os
 import sys
-from agents.health_advisor import HealthAdvisor
 from werkzeug.utils import secure_filename
+from agents.health_advisor import HealthAdvisor
+from agents.image_analyzer import ImageAnalyzer
+from agents.data_collector import DataCollector
 
 # Layihənin kök qovluğunu (backend) tap və sys.path-ə əlavə et
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
-
-# İndi agents import et
-from agents.image_analyzer import ImageAnalyzer
-from agents.data_collector import DataCollector
 
 app = Flask(__name__)
 CORS(app)
@@ -20,13 +18,15 @@ CORS(app)
 # Upload parametrləri
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Instance-ları yarat (BİR DƏFƏ!)
 collector = DataCollector()
 analyzer = ImageAnalyzer()
 advisor = HealthAdvisor()
+
+# ... qalan kod eyni qala ...
 
 # Azərbaycanın şəhər və rayonları
 AZERBAIJAN_LOCATIONS = {
@@ -274,8 +274,10 @@ TASK:
 
 Response:"""
         
-        # Gemini 3 çağır
-        response = health_advisor.model.generate_content(prompt)
+   
+        
+      # ✅ DÜZƏLİŞ: health_advisor → advisor
+        response = advisor.model.generate_content(prompt)  # BURASI 278-ci SƏTR
         ai_analysis = response.text
         
         return jsonify({
@@ -302,18 +304,6 @@ def test_page():
     <p><a href="/api/aqi">AQI Data</a></p>
     '''
 
-
-from agents.health_advisor import HealthAdvisor
-from agents.image_analyzer import ImageAnalyzer
-from agents.data_collector import DataCollector
-
-# Instance-ları yarat
-health_advisor = HealthAdvisor()
-image_analyzer = ImageAnalyzer()
-data_collector = DataCollector()
-
-app = Flask(__name__)
-CORS(app)
 # ===========================================
 # RUN SERVER
 # ===========================================
