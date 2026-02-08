@@ -230,6 +230,65 @@ def reset_chat():
     advisor.reset_conversation()
     return jsonify({'status': 'ok', 'message': 'Sohbet silinib'})
 
+
+@app.route('/api/compare', methods=['POST'])
+def compare_districts():
+    """Rayon müqayisəsi - Gemini 3"""
+    try:
+        data = request.get_json()
+        
+        loc1 = data.get('location1')
+        loc2 = data.get('location2')
+        lang = data.get('language', 'az')
+        
+        if not loc1 or not loc2:
+            return jsonify({'error': 'Rayonlar lazimdir'}), 400
+        
+        # Gemini 3-dən müqayisə al
+        if lang == 'az':
+            prompt = f"""İki rayonun hava keyfiyyətini müqayisə et və Azərbaycan dilində cavab ver:
+
+📍 {loc1['name']}: AQI {loc1['aqi']}
+📍 {loc2['name']}: AQI {loc2['aqi']}
+
+TAPŞIRIQ:
+1. Hansı rayon daha təmizdir açıqla
+2. Fərq nə qədərdir (faiz və ya rəqəm)
+3. Hər rayon üçün tövsiyə ver
+4. Konkret və qısa yaz (5-8 cümlə)
+5. Emoji istifadə et
+
+Cavab ver:"""
+        else:
+            prompt = f"""Compare air quality of two districts and respond in English:
+
+📍 {loc1['name']}: AQI {loc1['aqi']}
+📍 {loc2['name']}: AQI {loc2['aqi']}
+
+TASK:
+1. Which district has cleaner air?
+2. What's the difference (percentage or number)?
+3. Give recommendations for each
+4. Be concrete and brief (5-8 sentences)
+5. Use emojis
+
+Response:"""
+        
+        # Gemini 3 çağır
+        response = health_advisor.model.generate_content(prompt)
+        ai_analysis = response.text
+        
+        return jsonify({
+            'ai_analysis': ai_analysis,
+            'location1': loc1,
+            'location2': loc2
+        })
+        
+    except Exception as e:
+        print(f'Compare xetasi: {e}')
+        return jsonify({
+            'ai_analysis': '⚠️ Texniki problem. Zəhmət olmasa yenidən cəhd edin.'
+        }), 500
 # ===========================================
 # 4. STATIC FAYLLAR (ƏGƏR FRONTEND VARSA)
 # ===========================================

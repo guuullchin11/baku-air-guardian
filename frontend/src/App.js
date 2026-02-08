@@ -8,6 +8,7 @@ import AQIForecast from './components/AQIForecast';
 import axios from 'axios';
 import AQIAlerts from './components/AQIAlerts';
 import VoiceAlerts from './components/VoiceAlerts';
+import AQICompare from './components/AQICompare';
 
 // --- ƏLAVƏ EDİLDİ ---
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -218,6 +219,24 @@ function App() {
       {/* Voice Alerts */}
       <div className="feature-card" style={{ marginBottom: '50px' }}>
         <VoiceAlerts aqiData={aqiData} language={language} />
+      </div>
+
+      {/* Rayon Müqayisəsi - YENİ! */}
+      <div className="section-header">
+        <span className="section-icon">🔍</span>
+        <div>
+          <h2 className="section-title">
+            {language === 'az' ? 'Rayon Müqayisəsi' : 'District Comparison'}
+          </h2>
+          <p className="section-subtitle">
+            {language === 'az' 
+              ? 'İki rayonu müqayisə edin və AI tövsiyəsi alın' 
+              : 'Compare two districts and get AI recommendations'}
+          </p>
+        </div>
+      </div>
+      <div className="feature-card fade-in-delay-3">
+        <AQICompare aqiData={aqiData} language={language} />
       </div>
       
       {/* Şəhərlərə görə AQI kartları */}
