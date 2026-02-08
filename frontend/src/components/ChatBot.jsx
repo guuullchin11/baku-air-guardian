@@ -56,10 +56,11 @@ function ChatBot({ language = 'az' }) {
 
     try {
       // --- DƏYİŞDİRİLDİ ---
-      const response = await axios.post(`${API_URL}/api/chat`, {
-        message: input,
-        profile: userProfile.condition || userProfile.location ? userProfile : null
-      });
+     const response = await axios.post(`${API_URL}/api/chat`, {
+  message: currentMessage,
+  user_profile: userProfile,
+  language: language  // YENİ SƏTİR ƏLAVƏ ET!
+});
 
       const aiMessage = {
         role: 'ai',

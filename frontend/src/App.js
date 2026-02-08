@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import AQICard from './components/AQICard';
-import PhotoUpload from './components/PhotoUpload';
+
 import ChatBot from './components/ChatBot';
 import InteractiveMap from './components/InteractiveMap';
 import AQIForecast from './components/AQIForecast';

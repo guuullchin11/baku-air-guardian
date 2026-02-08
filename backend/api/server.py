@@ -215,12 +215,15 @@ def chat():
 
     if not data or 'message' not in data:
         return jsonify({'error': 'Mesaj gonderilmedi'}), 400
+    
 
     user_message = data['message']
     user_profile = data.get('profile', None)
+    language = data.get('language', 'az')
+    
 
     # AI-dan cavab al
-    result = advisor.get_health_advice(user_message, user_profile)
+    result = health_advisor.get_health_advice(user_message, user_profile, language)
 
     return jsonify(result)
 
