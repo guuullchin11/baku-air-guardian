@@ -55,12 +55,11 @@ function ChatBot({ language = 'az' }) {
     setLoading(true);
 
     try {
-      // --- DƏYİŞDİRİLDİ ---
-     const response = await axios.post(`${API_URL}/api/chat`, {
-  message: currentMessage,
-  user_profile: userProfile,
-  language: language  // YENİ SƏTİR ƏLAVƏ ET!
-});
+      const response = await axios.post(`${API_URL}/api/chat`, {
+        message: input,
+        profile: userProfile,
+        language: language === 'en' ? 'en' : 'az'
+      });
 
       const aiMessage = {
         role: 'ai',
@@ -79,7 +78,6 @@ function ChatBot({ language = 'az' }) {
 
   const resetChat = async () => {
     try {
-      // --- DƏYİŞDİRİLDİ ---
       await axios.post(`${API_URL}/api/chat/reset`);
       setMessages([]);
     } catch (err) {
@@ -111,24 +109,12 @@ function ChatBot({ language = 'az' }) {
           placeholder={t.condition}
           value={userProfile.condition}
           onChange={(e) => setUserProfile({...userProfile, condition: e.target.value})}
-          style={{
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            fontSize: '14px'
-          }}
         />
         <input
           type="text"
           placeholder={t.location}
           value={userProfile.location}
           onChange={(e) => setUserProfile({...userProfile, location: e.target.value})}
-          style={{
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            fontSize: '14px'
-          }}
         />
       </div>
 
@@ -147,13 +133,10 @@ function ChatBot({ language = 'az' }) {
           </p>
         )}
         {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            style={{
-              marginBottom: '15px',
-              textAlign: msg.role === 'user' ? 'right' : 'left'
-            }}
-          >
+          <div key={idx} style={{
+            marginBottom: '15px',
+            textAlign: msg.role === 'user' ? 'right' : 'left'
+          }}>
             <div style={{
               display: 'inline-block',
               maxWidth: '70%',
@@ -168,41 +151,9 @@ function ChatBot({ language = 'az' }) {
                 {msg.role === 'user' ? t.you : t.ai}
               </strong>
               <p style={{ margin: '5px 0 0 0' }}>{msg.content}</p>
-
-              {msg.aqi_data && Object.keys(msg.aqi_data).length > 0 && (
-                <div style={{
-                  marginTop: '10px',
-                  fontSize: '12px',
-                  opacity: 0.8,
-                  borderTop: '1px solid #eee',
-                  paddingTop: '8px'
-                }}>
-                  <strong>Real-time AQI:</strong>
-                  {Object.entries(msg.aqi_data).slice(0, 3).map(([loc, aqi]) => (
-                    <div key={loc}>{loc}: {aqi}</div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         ))}
-        {loading && (
-          <div style={{ textAlign: 'left' }}>
-            <div style={{
-              display: 'inline-block',
-              padding: '12px 16px',
-              borderRadius: '15px',
-              backgroundColor: '#fff',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-            }}>
-              <div style={{ display: 'flex', gap: '5px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#667eea' }}></div>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#667eea' }}></div>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#667eea' }}></div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Input */}
@@ -221,35 +172,8 @@ function ChatBot({ language = 'az' }) {
             fontSize: '14px'
           }}
         />
-        <button
-          onClick={sendMessage}
-          disabled={loading || !input.trim()}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: loading ? '#ccc' : '#667eea',
-            color: 'white',
-            border: 'none',
-            borderRadius: '10px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          {t.send}
-        </button>
-        <button
-          onClick={resetChat}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#ff6b6b',
-            color: 'white',
-            border: 'none',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          {t.reset}
-        </button>
+        <button onClick={sendMessage}>{t.send}</button>
+        <button onClick={resetChat}>{t.reset}</button>
       </div>
     </div>
   );

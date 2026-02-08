@@ -211,7 +211,6 @@ def analyze_image():
 
 # ===========================================
 # 3. CHAT ENDPOINTS
-# ===========================================
 @app.route('/api/chat', methods=['POST'])
 def chat():
     '''AI ile sohbet'''
@@ -219,11 +218,21 @@ def chat():
 
     if not data or 'message' not in data:
         return jsonify({'error': 'Mesaj gonderilmedi'}), 400
-    
 
-    user_message = data['message']
-    user_profile = data.get('profile', None)
+    user_message = data.get('message')
+    user_profile = data.get('profile', {})
     language = data.get('language', 'az')
+
+    print(f"DEBUG: Frontend-den gelen dil: {language}")
+
+    result = health_advisor.get_health_advice(
+        user_message,
+        user_profile,
+        language
+    )
+
+    return jsonify(result)
+
     
 
     # AI-dan cavab al
