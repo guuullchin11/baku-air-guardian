@@ -302,6 +302,18 @@ def test_page():
     <p><a href="/api/aqi">AQI Data</a></p>
     '''
 
+
+from agents.health_advisor import HealthAdvisor
+from agents.image_analyzer import ImageAnalyzer
+from agents.data_collector import DataCollector
+
+# Instance-ları yarat
+health_advisor = HealthAdvisor()
+image_analyzer = ImageAnalyzer()
+data_collector = DataCollector()
+
+app = Flask(__name__)
+CORS(app)
 # ===========================================
 # RUN SERVER
 # ===========================================
