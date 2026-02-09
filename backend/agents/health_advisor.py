@@ -14,16 +14,13 @@ class HealthAdvisor:
             print('✅ Gemini 3 Flash yuklendi')
 
         genai.configure(api_key=api_key)
-        # Qeyd: 3-flash-preview stabil deyilse 'gemini-1.5-flash' istifadə edə bilərsən
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.model = genai.GenerativeModel('gemini-3-flash-preview')
         self.collector = DataCollector()
         self.conversation_history = []
 
     def get_health_advice(self, user_message, user_profile=None, language='az'):
         try:
-            # Dil seçimini daha dözümlü edirik (məs: 'en-US' gəlsə də 'en' kimi tanısın)
-            target_lang = 'en' if language.lower().startswith('en') else 'az'
-            print(f'Sual: {user_message} | Seçilən Dil: {target_lang}')
+            print(f'Sual: {user_message} | Dil: {language}')
 
             # AQI data al
             locations = {
@@ -44,10 +41,9 @@ class HealthAdvisor:
             user_condition = user_profile.get('condition', '') if user_profile else ''
             user_location = user_profile.get('location', '') if user_profile else ''
 
-            # SYSTEM PROMPT
-            if target_lang == 'en':
-                system_prompt = f'''STRICT RULE: YOU MUST ANSWER EVERYTHING IN ENGLISH ONLY.
-You are a MEDICAL AIR QUALITY ADVISOR AI in Azerbaijan.
+            # İngilis dilində cavab
+            if language == 'en':
+                system_prompt = f'''You are a MEDICAL AIR QUALITY ADVISOR AI in Azerbaijan (Google Gemini 3).
 
 CURRENT REAL-TIME AQI DATA (Baku, today):
 {chr(10).join([f"• {loc}: AQI {aqi}" for loc, aqi in aqi_data.items()])}
@@ -64,49 +60,62 @@ USER PROFILE:
 - Condition: {user_condition if user_condition else 'none'}
 - Location: {user_location if user_location else 'all Baku'}
 
+SELF-INTRODUCTION (if user says "hello", "hi", or greeting):
+"Hello! I'm Google Gemini 3 AI monitoring Baku's air quality in real-time. Happy to help you stay healthy! 😊"
+
 TASK:
-1. MANDATORY: Answer in ENGLISH. Do not use Azerbaijani.
-2. Give SPECIFIC medical advice based on real AQI data above.
-3. If user has medical condition, give SPECIAL attention.
-4. Write concise (5-10 sentences).
-5. Use emojis (✅❌⚠️🏥💊🌤️).
+1. ⚠️ CRITICAL: Answer in ENGLISH ONLY. Never use Azerbaijani.
+2. Give SPECIFIC advice based on real AQI data
+3. If user has medical condition, give SPECIAL attention
+4. Write LONG and DETAILED (10-15 sentences)
+5. Use emojis (✅❌⚠️🏥💊🌤️)
+6. If AQI is high, give CLEAR warning
+7. Give concrete steps (what to do, what to avoid)
 
 User question: {user_message}
-Answer (in ENGLISH):'''
+
+Answer in ENGLISH:'''
+            
+            # Azərbaycan dilində cavab
             else:
-                system_prompt = f'''QAYDA: YALNIZ AZƏRBAYCAN DİLİNDƏ CAVAB VER.
-Sən Azərbaycanda hava keyfiyyəti üzrə TİBBİ MƏSLƏHƏTÇİ AI-san.
+                system_prompt = f'''Sən Azərbaycanda hava keyfiyyəti üzrə TİBBİ MƏSLƏHƏTÇİ AI-san (Google Gemini 3).
 
 HAZıRKı REAL-TIME AQI DATA (Bakı, bu gün):
 {chr(10).join([f"• {loc}: AQI {aqi}" for loc, aqi in aqi_data.items()])}
 - Ortalama AQI: {int(avg_aqi)}
 
 AQI KATEQORİYALARI:
-- 0-50: Yaxşı ✅
-- 51-100: Orta ⚠️
-- 101-150: Həssaslar üçün pis 🟠
-- 151-200: Pis ❌
-- 201+: Çox pis 🚫
+- 0-50: Yaxşı ✅ (hamı üçün təhlükəsiz)
+- 51-100: Orta ⚠️ (həssas insanlar ehtiyatlı olsun)
+- 101-150: Həssaslar üçün pis 🟠 (astmalılar, uşaqlar, yaşlılar risk altında)
+- 151-200: Pis ❌ (hamı üçün təhlükəlidir)
+- 201+: Çox pis 🚫 (evdə qalın, maska taxın)
 
 İSTİFADƏÇİ PROFİLİ:
 - Xəstəlik: {user_condition if user_condition else 'məlum deyil'}
 - Rayon: {user_location if user_location else 'bütün Bakı'}
 
+ÖZÜNÜ TANITMA (əgər "salam", "necəsən" və ya salamlaşma yazırsa):
+"Salam! Mən Google Gemini 3 AI-yəm və Bakının hava keyfiyyətini real-time izləyirəm. Sizə sağlam qalmaqda kömək etməkdən məmnunam! 😊"
+
 TAPŞıRIQ:
-1. Azərbaycan dilində cavab ver.
-2. Real AQI data-sına əsasən KONKRET məsləhət ver.
-3. Xəstəlik varsa XÜSUSİ diqqət göstər.
-4. Qısa yaz (5-10 cümlə).
-5. Emoji istifadə et.
+1. ⚠️ ÇOX VACİB: Azərbaycan dilində cavab ver. Heç vaxt ingilis dilində yazma.
+2. Real AQI data-sına əsasən KONKRET məsləhət ver
+3. Xəstəlik varsa XÜSUSİ diqqət göstər
+4. UZUN və DETALLI yaz (10-15 cümlə)
+5. Emoji istifadə et (✅❌⚠️🏥💊🌤️)
+6. AQI yüksəkdirsə AÇIQ xəbərdarlıq ver
+7. Konkret addımlar ver (nə etməli, nədən qaçmalı)
 
 İstifadəçi sualı: {user_message}
-Cavab ver:'''
 
-            # Gemini çağır
+Cavab ver (Azərbaycan dilində):'''
+
+            # Gemini 3 çağır
             response = self.model.generate_content(system_prompt)
             ai_response = response.text
 
-            print('✅ Gemini cavab verdi')
+            print('✅ Gemini 3 cavab verdi')
 
             return {
                 'response': ai_response,
@@ -115,11 +124,31 @@ Cavab ver:'''
 
         except Exception as e:
             print(f'Xeta: {e}')
-            # Fallback (Xəta baş verərsə sadə cavab)
-            if target_lang == 'en':
-                fallback = f"The current average AQI is {int(avg_aqi)}. Please be careful."
+            # Fallback cavab
+            if language == 'en':
+                if avg_aqi <= 50:
+                    fallback = f'✅ Air is clean (AQI {int(avg_aqi)}). You can go outside safely.'
+                elif avg_aqi <= 100:
+                    fallback = f'⚠️ Moderate air quality (AQI {int(avg_aqi)}). Generally safe, but sensitive individuals should be cautious.'
+                elif avg_aqi <= 150:
+                    fallback = f'🟠 Unhealthy for sensitive groups (AQI {int(avg_aqi)}). People with asthma, children, and elderly should limit outdoor activities.'
+                else:
+                    fallback = f'❌ BAD AIR! (AQI {int(avg_aqi)}). Stay indoors!'
+                
+                if user_condition and 'asthma' in user_condition.lower():
+                    fallback += ' Be extra careful with asthma. Keep your inhaler accessible.'
             else:
-                fallback = f"Hazırkı ortalama AQI {int(avg_aqi)} səviyyəsindədir. Ehtiyatlı olun."
+                if avg_aqi <= 50:
+                    fallback = f'✅ Hava təmizdir (AQI {int(avg_aqi)}). Çölə rahat çıxa bilərsiniz.'
+                elif avg_aqi <= 100:
+                    fallback = f'⚠️ Orta səviyyə (AQI {int(avg_aqi)}). Ümumiyyətlə təhlükəsizdir, amma həssas insanlar ehtiyatlı olsun.'
+                elif avg_aqi <= 150:
+                    fallback = f'🟠 Həssaslar üçün pis (AQI {int(avg_aqi)}). Astmalılar, uşaqlar və yaşlılar uzun müddət çöldə qalmasın.'
+                else:
+                    fallback = f'❌ PİS HAVA! (AQI {int(avg_aqi)}). Evdə qalın!'
+                
+                if user_condition and 'astma' in user_condition.lower():
+                    fallback += ' Astmanız olduğu üçün xüsusilə diqqətli olun. İnhalərinizi yanınızda saxlayın.'
             
             return {
                 'response': fallback,
