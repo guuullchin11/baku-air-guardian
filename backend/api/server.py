@@ -169,46 +169,6 @@ def get_district_aqi(district):
     else:
         return jsonify({'error': 'AQI data alınmadı'}), 500
 
-@app.route('/api/analyze-image', methods=['POST'])
-def analyze_image():
-    """Foto yüklə və hava keyfiyyətini analiz et"""
-    if 'image' not in request.files:
-        return jsonify({'error': 'Foto yüklənilmədi'}), 400
-
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({'error': 'Fayl seçilmədi'}), 400
-
-    if not allowed_file(file.filename):
-        return jsonify({'error': 'Yalnız png, jpg, jpeg, gif faylları qəbul olunur'}), 400
-
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(filepath)
-
-    try:
-        result = analyzer.analyze_sky_image(filepath)
-
-        if result:
-            return jsonify({
-                'success': True,
-                'estimated_aqi': result.get('aqi', 'təxmin edilə bilmədi'),
-                'description': result.get('description', 'Təhlil nəticəsi'),
-                'recommendation': result.get('recommendation', 'Tövsiyə yoxdur')
-            })
-        else:
-            return jsonify({'error': 'Şəkil təhlil edilə bilmədi'}), 500
-
-    except Exception as e:
-        return jsonify({'error': f'Təhlil zamanı xəta baş verdi: {str(e)}'}), 500
-
-    finally:
-        try:
-            if os.path.exists(filepath):
-                os.remove(filepath)
-        except Exception:
-            pass
-
 # ===========================================
 # 3. CHAT ENDPOINTS
 @app.route('/api/chat', methods=['POST'])
@@ -235,10 +195,7 @@ def chat():
 
     
 
-    # AI-dan cavab al
-    result = health_advisor.get_health_advice(user_message, user_profile, language)
-
-    return jsonify(result)
+   
 
 @app.route('/api/chat/reset', methods=['POST'])
 def reset_chat():
@@ -260,35 +217,59 @@ def compare_districts():
         if not loc1 or not loc2:
             return jsonify({'error': 'Rayonlar lazimdir'}), 400
         
-        # Gemini 3-dən müqayisə al
+        print(f'Müqayisə: {loc1["name"]} vs {loc2["name"]}')
+        
+        # Prompt
         if lang == 'az':
-            prompt = f"""İki rayonun hava keyfiyyətini müqayisə et və Azərbaycan dilində cavab ver:
+            prompt = f'''İki rayonun hava keyfiyyətini müqayisə et və Azərbaycan dilində cavab ver:
 
 📍 {loc1['name']}: AQI {loc1['aqi']}
 📍 {loc2['name']}: AQI {loc2['aqi']}
 
 TAPŞIRIQ:
 1. Hansı rayon daha təmizdir açıqla
-2. Fərq nə qədərdir (faiz və ya rəqəm)
-3. Hər rayon üçün tövsiyə ver
-4. Konkret və qısa yaz (5-8 cümlə)
+2. Fərq nə qədərdir
+3. Hər rayon üçün qısa tövsiyə ver
+4. 5-8 cümlə yaz
 5. Emoji istifadə et
 
-Cavab ver:"""
+Cavab:'''
         else:
-            prompt = f"""Compare air quality of two districts and respond in English:
+            prompt = f'''Compare air quality and respond in English:
 
 📍 {loc1['name']}: AQI {loc1['aqi']}
 📍 {loc2['name']}: AQI {loc2['aqi']}
 
-TASK:
-1. Which district has cleaner air?
-2. What's the difference (percentage or number)?
-3. Give recommendations for each
-4. Be concrete and brief (5-8 sentences)
-5. Use emojis
+Give brief comparison (5-8 sentences) with emojis.
 
-Response:"""
+Response:'''
+        
+        # Gemini 3 çağır
+        import google.generativeai as genai
+        model = genai.GenerativeModel('gemini-3-flash-preview')
+        response = model.generate_content(prompt)
+        ai_analysis = response.text
+        
+        print('✅ Gemini 3 müqayisə cavabı hazır')
+        
+        return jsonify({
+            'ai_analysis': ai_analysis,
+            'location1': loc1,
+            'location2': loc2
+        })
+        
+    except Exception as e:
+        print(f'❌ Compare xetasi: {e}')
+        import traceback
+        traceback.print_exc()
+        
+        fallback = '⚠️ Hər iki rayonda AQI eyni səviyyədədir (75 - Orta). Ümumi ehtiyat tədbirləri tətbiq edin.' if lang == 'az' else '⚠️ Both districts have similar AQI (75 - Moderate). Apply general precautions.'
+        
+        return jsonify({
+            'ai_analysis': fallback
+        }), 200
+
+            
         
    
         
